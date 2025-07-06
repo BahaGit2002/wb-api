@@ -30,7 +30,7 @@ The project integrates with the Wildberries API using the following credentials:
 
 1. Clone the repository:
 ```bash
-git clone [repository-url]
+git clone https://github.com/BahaGit2002/wb-api.git
 cd wb-api
 ```
 
@@ -49,9 +49,12 @@ cp .env.example .env
 DB_CONNECTION=mysql
 DB_HOST=your-database-host
 DB_PORT=3306
-DB_DATABASE=your-database-name
+DB_DATABASE=wb_api_db
 DB_USERNAME=your-username
 DB_PASSWORD=your-password
+APP_TIMEZONE=Asia/Almaty
+API_HOST=http://109.73.206.144:6969
+API_KEY=E6kUTYrYwZq2tN4QEtyzsbEBk3ie
 ```
 
 5. Run migrations:
@@ -64,15 +67,103 @@ php artisan migrate
 php artisan serve
 ```
 
-## Database Access
+## Database Structure Details
 
-The database is hosted on a free hosting service with the following credentials:
+### Stocks Table
+- id
+- date
+- last_change_date
+- supplier_article
+- tech_size
+- barcode
+- quantity
+- is_supply
+- is_realization
+- quantity_full
+- warehouse_name
+- in_way_to_client
+- in_way_from_client
+- nm_id
+- subject
+- category
+- brand
+- sc_code
+- price
+- discount
+- created_at
+- updated_at
 
-- Host: [Your Database Host]
-- Database Name: [Your Database Name]
-- Username: [Your Username]
-- Password: [Your Password]
-- Port: 3306
+### Sales Table
+- id
+- g_number
+- date
+- last_change_date
+- supplier_article
+- tech_size
+- barcode
+- total_price
+- discount_percent
+- is_supply
+- is_realization
+- promo_code_discount
+- warehouse_name
+- country_name
+- oblast_okrug_name
+- region_name
+- income_id
+- sale_id (unique)
+- odid
+- spp
+- for_pay
+- finished_price
+- price_with_disc
+- nm_id
+- subject
+- category
+- brand
+- is_storno
+- created_at
+- updated_at
+
+### Incomes Table
+- id
+- income_id (unique)
+- number
+- date
+- last_change_date
+- supplier_article
+- tech_size
+- barcode
+- quantity
+- total_price
+- date_close
+- warehouse_name
+- nm_id
+- created_at
+- updated_at
+
+### Orders Table
+- id
+- g_number (unique)
+- date
+- last_change_date
+- supplier_article
+- tech_size
+- barcode
+- total_price
+- discount_percent
+- warehouse_name
+- oblast
+- income_id
+- odid
+- nm_id
+- subject
+- category
+- brand
+- is_cancel
+- cancel_dt
+- created_at
+- updated_at
 
 ## API Endpoints
 
@@ -98,48 +189,75 @@ The project implements the following API endpoints:
    - Method: GET
    - Description: Fetches and stores income data
 
-## Data Models
+## Scheduler
 
-The project includes the following models:
+The project includes a scheduler that runs daily at 17:00 (Asia/Almaty timezone) to fetch data:
 
-1. Order
-   - Handles order-related data
-   - Fields: [List main fields]
+```php
+protected function schedule(Schedule $schedule)
+{
+    $schedule->command('app:fetch-api-data')->dailyAt('17:00');
+}
+```
 
-2. Sale
-   - Manages sales data
-   - Fields: [List main fields]
+To set up the scheduler, add this to your crontab:
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
 
-3. Stock
-   - Manages stock information
-   - Fields: [List main fields]
+## Data Fetching
 
-4. Income
-   - Handles income data
-   - Fields: [List main fields]
+To manually fetch data, use the command:
+```bash
+php artisan app:fetch-api-data --dateFrom=2025-01-01 --dateTo=2025-06-05
+```
 
-## Background Jobs
+## Postman Collection
 
-The project uses Laravel's queue system to process API requests in the background, ensuring better performance and reliability.
+For API testing, use the Postman collection:
+- Import from: https://www.postman.com/cy322666/workspace/app-api-test/overview
+- API key is passed via the `key` parameter in requests
+- Example parameters:
+  - dateFrom=2025-06-01
+  - dateTo=2025-06-05
+  - page=1
+  - limit=100
 
-## Caching
+## Current Data Status
 
-API responses are cached to improve performance and reduce API calls. The cache is stored in the `cache` table.
+- Stocks: 0 records
+- Sales: 1164 records (2025-06-01 to 2025-06-05)
+- Incomes: 6 records
+- Orders: 1270 records
 
-## Security
+## Logging
 
-- API keys are stored in environment variables
-- Database credentials are secured
-- Input validation is implemented
-- Rate limiting is applied to API endpoints
+Logs are stored in `storage/logs/laravel.log`
+View logs with:
+```bash
+tail -f storage/logs/laravel.log
+```
 
-## Contributing
+## Troubleshooting
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+1. Empty Endpoints:
+   - Try adjusting the date range (e.g., dateFrom=2025-01-01)
+
+2. API Errors:
+   - Check logs for request errors
+   - Verify API_KEY and API_HOST in .env
+
+3. Database Issues:
+   - Run migrations: `php artisan migrate`
+   - Verify database connection settings
+
+4. Scheduler Issues:
+   - Check crontab: `crontab -l`
+   - Verify timezone setting (APP_TIMEZONE=Asia/Almaty)
+
+## Contact
+
+For questions or support, contact: baktiarzaksylykov22@gmail.com
 
 ## License
 
@@ -200,7 +318,7 @@ APP_TIMEZONE=Asia/Almaty обеспечивает корректное врем�
 Пример доступов:
 Хост: <хост>
 Порт: 3306
-Имя базы: wb_api_db
+Имя базы: wb_db
 Пользователь: <имя_пользователя>
 Пароль: <пароль>
 
